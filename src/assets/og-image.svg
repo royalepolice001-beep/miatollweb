@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#12152a"/>
+      <stop offset="0.55" stop-color="#0d1020"/>
+      <stop offset="1" stop-color="#141032"/>
+    </linearGradient>
+    <radialGradient id="blobA" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#7c6cff" stop-opacity="0.85"/>
+      <stop offset="0.6" stop-color="#5e5ce6" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#5e5ce6" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blobB" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#31c4f3" stop-opacity="0.8"/>
+      <stop offset="0.6" stop-color="#31c4f3" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#31c4f3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="blobC" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ff375f" stop-opacity="0.7"/>
+      <stop offset="0.6" stop-color="#bf5af2" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#bf5af2" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0.05"/>
+    </linearGradient>
+    <linearGradient id="stroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#64d2ff" stop-opacity="0.25"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="60" y1="40" x2="140" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#8b89ff"/>
+      <stop offset="1" stop-color="#64d2ff"/>
+    </linearGradient>
+    <filter id="blur" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <g filter="url(#blur)">
+    <ellipse cx="1050" cy="90" rx="320" ry="240" fill="url(#blobA)"/>
+    <ellipse cx="140" cy="560" rx="340" ry="260" fill="url(#blobB)"/>
+    <ellipse cx="640" cy="330" rx="300" ry="220" fill="url(#blobC)" opacity="0.55"/>
+  </g>
+
+  <!-- floating glass panels -->
+  <g transform="translate(820 150) rotate(-6)">
+    <rect width="300" height="180" rx="28" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(880 380) rotate(5)">
+    <rect width="240" height="140" rx="24" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+  </g>
+  <g transform="translate(70 80) rotate(4)">
+    <rect width="200" height="120" rx="22" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+  </g>
+
+  <!-- logo mark -->
+  <g transform="translate(72 236)">
+    <rect x="2" y="2" width="116" height="116" rx="34" fill="#101326" stroke="url(#mark)" stroke-width="5"/>
+    <path d="M32 84V38l20 27 10-13 10 13 20-27v46" stroke="url(#mark)" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- brand text -->
+  <text x="230" y="290" font-family="-apple-system, 'SF Pro Display', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="72" font-weight="700" fill="#f2f3fa" letter-spacing="-2">Miatoll Family</text>
+  <text x="232" y="342" font-family="-apple-system, 'SF Pro Text', 'Segoe UI', Helvetica, Arial, sans-serif" font-size="30" font-weight="500" fill="#9aa3c7">Download Center · ROM · Kernel · Recovery · Module · Tema</text>
+
+  <!-- device chips -->
+  <g font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="20" font-weight="600">
+    <g transform="translate(72 480)">
+      <rect width="150" height="52" rx="26" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+      <text x="75" y="33" text-anchor="middle" fill="#64d2ff">curtana</text>
+    </g>
+    <g transform="translate(238 480)">
+      <rect width="120" height="52" rx="26" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+      <text x="60" y="33" text-anchor="middle" fill="#8b89ff">gram</text>
+    </g>
+    <g transform="translate(374 480)">
+      <rect width="170" height="52" rx="26" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+      <text x="85" y="33" text-anchor="middle" fill="#d28bf5">excalibur</text>
+    </g>
+    <g transform="translate(560 480)">
+      <rect width="150" height="52" rx="26" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+      <text x="75" y="33" text-anchor="middle" fill="#ffb340">mojito</text>
+    </g>
+    <g transform="translate(726 480)">
+      <rect width="160" height="52" rx="26" fill="url(#glass)" stroke="url(#stroke)" stroke-width="1.5"/>
+      <text x="80" y="33" text-anchor="middle" fill="#f5488f">joyeuse</text>
+    </g>
+  </g>
+</svg>
