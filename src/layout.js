@@ -10,14 +10,14 @@ function esc(s) {
 }
 
 /* ---------- Sidebar (gaming launcher style) ---------- */
-function navItem(item, activeId) {
+function navItem(item, activeId, idx) {
   const active = item.id === activeId;
   return `
-        <a class="nav-item${active ? " is-active" : ""}" href="${item.href}"${
+        <a class="nav-item${active ? " is-active" : ""}" href="${item.href}" style="--d:${(idx || 0) * 18}ms"${
     active ? ' aria-current="page"' : ""
   }>
           <span class="nav-icon">${icons[item.icon] || ""}</span>
-          <span class="nav-label">${esc(item.label)}</span>
+          <span class="nav-label s-hide-rail">${esc(item.label)}</span>
           <span class="nav-glow" aria-hidden="true"></span>
         </a>`;
 }
@@ -38,7 +38,7 @@ function sidebar(activeId) {
             <path d="M11 27V13.5l6.2 8.4 2.8-3.9 2.8 3.9L29 13.5V27" stroke="url(#bg1)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <span class="brand-text">
+        <span class="brand-text s-hide-rail">
           <strong>Miatoll</strong>
           <small>Family</small>
         </span>
@@ -46,28 +46,32 @@ function sidebar(activeId) {
 
       <nav class="nav" aria-label="Menu utama">
 ${nav
-  .map((group) => {
+  .map((group, gi) => {
     if (group.section) {
       return `
         <div class="nav-section">
-          <p class="nav-section-title">${esc(group.section)}</p>
-          ${group.items.map((it) => navItem(it, activeId)).join("\n")}
+          <p class="nav-section-title s-hide-rail" style="--d:${gi * 30}ms">${esc(group.section)}</p>
+          ${group.items.map((it, ii) => navItem(it, activeId, ii + 2)).join("\n")}
         </div>`;
     }
-    return navItem(group, activeId);
+    return navItem(group, activeId, 0);
   })
   .join("\n")}
       </nav>
 
       <div class="sidebar-foot">
-        <div class="status-chip">
+        <div class="status-chip" title="Stable channel">
           <span class="status-dot" aria-hidden="true"></span>
-          <span>Stable channel · v${esc(site.version)}</span>
+          <span class="s-hide-rail" style="--d:180ms">Stable channel · v${esc(site.version)}</span>
         </div>
-        <a class="side-cta" href="https://github.com/royalepolice001-beep/miatollweb" target="_blank" rel="noopener noreferrer">
+        <a class="side-cta" href="https://github.com/royalepolice001-beep/miatollweb" target="_blank" rel="noopener noreferrer" title="Repo GitHub">
           ${icons.package}
-          <span>Repo GitHub</span>
+          <span class="s-hide-rail" style="--d:200ms">Repo GitHub</span>
         </a>
+        <button class="side-cta sb-collapse" id="sbCollapse" type="button" title="Sembunyikan sidebar" aria-label="Sembunyikan sidebar">
+          ${icons.chevronsLeft}
+          <span class="s-hide-rail" style="--d:220ms">Sembunyikan</span>
+        </button>
       </div>
     </div>`;
   return `<aside class="sidebar" id="sidebar" aria-label="Sidebar navigasi">${html}</aside>`;
@@ -199,7 +203,13 @@ function head(page) {
           t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
         document.documentElement.setAttribute("data-theme", t);
-      } catch (e) { document.documentElement.setAttribute("data-theme", "light"); }
+        var s = localStorage.getItem("mf-sidebar");
+        if (s !== "open" && s !== "hidden") s = "rail";
+        document.documentElement.setAttribute("data-sidebar", s);
+      } catch (e) {
+        document.documentElement.setAttribute("data-theme", "light");
+        document.documentElement.setAttribute("data-sidebar", "rail");
+      }
     })();
   </script>
   <script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>`;
@@ -215,6 +225,10 @@ function topbar(page) {
     <header class="topbar" id="topbar">
       <button class="icon-btn menu-btn" id="menuBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
         ${icons.menu}
+      </button>
+      <button class="icon-btn sb-toggle" id="sbToggle" type="button" aria-label="Kunci sidebar terbuka" title="Buka / kunci / sembunyikan sidebar">
+        <span class="sb-ico sb-ico-open">${icons.chevronsRight}</span>
+        <span class="sb-ico sb-ico-close">${icons.chevronsLeft}</span>
       </button>
       <div class="crumb">
         <span class="crumb-root">Miatoll Family</span>

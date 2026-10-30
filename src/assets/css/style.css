@@ -89,6 +89,7 @@ code {
   --radius-sm: 12px;
 
   --sidebar-w: 264px;
+  --rail-w: 80px;
   --topbar-h: 64px;
   --max-w: 1180px;
 
@@ -197,6 +198,19 @@ html[data-theme="dark"] {
   box-shadow: var(--shadow-card);
 }
 
+/* ---------- Sidebar state (desktop) ---------- */
+html[data-sidebar="rail"] {
+  --sb-current: var(--rail-w);
+}
+
+html[data-sidebar="open"] {
+  --sb-current: var(--sidebar-w);
+}
+
+html[data-sidebar="hidden"] {
+  --sb-current: 0px;
+}
+
 /* ---------- Shell layout ---------- */
 .shell {
   min-height: 100dvh;
@@ -215,13 +229,13 @@ html[data-theme="dark"] {
   gap: 34px;
 }
 
-/* ---------- Sidebar (gaming launcher) ---------- */
+/* ---------- Sidebar (gaming launcher · Cloudflare-style rail) ---------- */
 .sidebar {
   position: fixed;
   z-index: 60;
   inset: 0 auto 0 0;
   width: var(--sidebar-w);
-  padding: 16px 12px 16px 16px;
+  padding: 14px 8px 14px 8px;
   display: flex;
   flex-direction: column;
 }
@@ -230,16 +244,90 @@ html[data-theme="dark"] {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  padding: 18px 12px 14px;
+  gap: 16px;
+  padding: 16px 10px 12px;
   background: var(--sidebar-bg);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
   backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
+  transition: width 0.42s var(--ease-spring), box-shadow 0.35s ease;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
+}
+
+/* ---- Desktop: rail → hover expand → pinned → hidden ---- */
+@media (min-width: 961px) {
+  .sidebar {
+    width: var(--rail-w);
+    padding: 14px 0;
+    transition: width 0.42s var(--ease-spring), transform 0.45s var(--ease-out), opacity 0.35s ease;
+  }
+
+  .sidebar-inner {
+    width: var(--rail-w);
+  }
+
+  /* hover / keyboard focus → expand overlay (Cloudflare-style) */
+  html[data-sidebar="rail"] .sidebar:hover .sidebar-inner,
+  html[data-sidebar="rail"] .sidebar:focus-within .sidebar-inner {
+    width: var(--sidebar-w);
+    box-shadow: var(--shadow-float);
+  }
+
+  /* pinned open → push content */
+  html[data-sidebar="open"] .sidebar {
+    width: var(--sidebar-w);
+  }
+
+  html[data-sidebar="open"] .sidebar-inner {
+    width: var(--sidebar-w);
+  }
+
+  /* fully hidden */
+  html[data-sidebar="hidden"] .sidebar {
+    transform: translateX(calc(-1 * var(--sidebar-w) - 40px));
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* content offset per state (fix: sidebar menimpa konten) */
+  .shell {
+    padding-left: var(--sb-current, var(--rail-w));
+    transition: padding-left 0.42s var(--ease-out);
+  }
+
+  .topbar {
+    padding-left: calc(var(--sb-current, var(--rail-w)) + 14px);
+  }
+}
+
+/* labels: hidden di rail, muncul bertahap saat expand */
+.s-hide-rail {
+  white-space: nowrap;
+}
+
+@media (min-width: 961px) {
+  .s-hide-rail {
+    transition: opacity 0.3s ease, transform 0.38s var(--ease-out);
+    transition-delay: var(--d, 0ms);
+  }
+
+  html[data-sidebar="rail"] .s-hide-rail {
+    opacity: 0;
+    transform: translateX(-8px);
+    pointer-events: none;
+    transition-delay: 0ms;
+  }
+
+  html[data-sidebar="rail"] .sidebar:hover .s-hide-rail,
+  html[data-sidebar="rail"] .sidebar:focus-within .s-hide-rail {
+    opacity: 1;
+    transform: none;
+    transition-delay: calc(var(--d, 0ms) + 50ms);
+  }
 }
 
 .brand {
@@ -415,6 +503,7 @@ html[data-theme="dark"] {
   display: flex;
   align-items: center;
   gap: 9px;
+  width: 100%;
   padding: 10px 12px;
   border-radius: 13px;
   font-size: 13.5px;
@@ -422,6 +511,7 @@ html[data-theme="dark"] {
   color: var(--text-2);
   background: var(--glass-soft);
   border: 1px solid var(--border);
+  cursor: pointer;
   transition: transform 0.25s var(--ease-out), box-shadow 0.3s, color 0.25s;
 }
 
@@ -448,7 +538,7 @@ html[data-theme="dark"] {
   align-items: center;
   gap: 14px;
   padding: 0 22px;
-  padding-left: calc(var(--sidebar-w) + 10px);
+  padding-left: calc(var(--sb-current, var(--rail-w)) + 14px);
   background: linear-gradient(to bottom, var(--bg-2), transparent);
   -webkit-backdrop-filter: blur(0px);
   backdrop-filter: blur(0px);
@@ -523,6 +613,63 @@ html[data-theme="dark"] {
 
 .menu-btn {
   display: none;
+}
+
+/* sidebar state toggle (desktop) — rail ↔ pinned ↔ hidden */
+.sb-toggle {
+  display: none;
+  position: relative;
+}
+
+@media (min-width: 961px) {
+  .sb-toggle {
+    display: grid;
+  }
+}
+
+.sb-ico {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  transition: transform 0.45s var(--ease-spring), opacity 0.3s ease;
+}
+
+/* rail / open → sidebar terlihat → tampilkan « (sembunyikan) */
+html[data-sidebar="rail"] .sb-ico-close,
+html[data-sidebar="open"] .sb-ico-close {
+  transform: rotate(0) scale(1);
+  opacity: 1;
+}
+
+html[data-sidebar="rail"] .sb-ico-open,
+html[data-sidebar="open"] .sb-ico-open {
+  transform: rotate(90deg) scale(0.4);
+  opacity: 0;
+}
+
+/* hidden → tampilkan » (kembalikan) */
+html[data-sidebar="hidden"] .sb-ico-open {
+  transform: rotate(0) scale(1);
+  opacity: 1;
+  color: var(--accent-3);
+}
+
+html[data-sidebar="hidden"] .sb-ico-close {
+  transform: rotate(-90deg) scale(0.4);
+  opacity: 0;
+}
+
+/* tombol sembunyikan di dalam sidebar */
+.sb-collapse {
+  width: 100%;
+  cursor: pointer;
+  color: var(--text-3);
+  transition: color 0.25s, transform 0.25s var(--ease-out), box-shadow 0.3s;
+}
+
+.sb-collapse:hover {
+  color: var(--text);
+  transform: translateX(2px);
 }
 
 /* theme toggle icons */
@@ -1933,6 +2080,10 @@ html[data-theme="dark"] .dl-version code {
 
   .sidebar.is-open {
     transform: translateX(0);
+  }
+
+  .sb-collapse {
+    display: none;
   }
 
   .topbar {

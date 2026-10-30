@@ -62,6 +62,61 @@
     });
   }
 
+  /* ---------- Desktop sidebar state: rail / open / hidden ---------- */
+  var SB_KEY = "mf-sidebar";
+  var sbToggle = doc.getElementById("sbToggle");
+  var sbCollapse = doc.getElementById("sbCollapse");
+
+  function getSidebarState() {
+    try {
+      var s = localStorage.getItem(SB_KEY);
+      return s === "open" || s === "hidden" ? s : "rail";
+    } catch (e) {
+      return "rail";
+    }
+  }
+
+  function setSidebarState(state) {
+    root.setAttribute("data-sidebar", state);
+    try {
+      localStorage.setItem(SB_KEY, state);
+    } catch (e) {}
+    if (sbToggle) {
+      var label =
+        state === "hidden"
+          ? "Tampilkan sidebar"
+          : state === "open"
+          ? "Lepas kunci sidebar (rail)"
+          : "Kunci sidebar terbuka";
+      sbToggle.setAttribute("aria-label", label);
+      sbToggle.setAttribute("title", label);
+    }
+  }
+
+  setSidebarState(getSidebarState());
+
+  if (sbToggle) {
+    sbToggle.addEventListener("click", function () {
+      var cur = root.getAttribute("data-sidebar") || "rail";
+      var next =
+        cur === "rail" ? "open" : cur === "open" ? "rail" : "rail";
+      setSidebarState(next);
+    });
+  }
+
+  if (sbCollapse) {
+    sbCollapse.addEventListener("click", function () {
+      setSidebarState("hidden");
+    });
+  }
+
+  doc.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (!window.matchMedia("(min-width: 961px)").matches) return;
+    var cur = root.getAttribute("data-sidebar");
+    if (cur && cur !== "rail") setSidebarState("rail");
+  });
+
   /* ---------- Sidebar hover glow follows cursor ---------- */
   doc.querySelectorAll(".nav-item").forEach(function (item) {
     item.addEventListener("pointermove", function (e) {
