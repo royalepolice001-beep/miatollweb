@@ -19,7 +19,7 @@ const site = {
   year: 2026
 };
 
-/* Sidebar navigation — gaya gaming launcher */
+/* Navbar navigation (top bar) */
 const nav = [
   { id: "index", href: "/", label: "Beranda", icon: "home" },
   { id: "devices", href: "/devices", label: "Perangkat", icon: "smartphone" },
@@ -35,14 +35,14 @@ const nav = [
     ]
   },
   {
-    section: "Modding & Extra",
+    section: "Modding",
     items: [
       { id: "modules", href: "/modules", label: "Magisk / KSU", icon: "package" },
       { id: "apk", href: "/apk", label: "APK Pilihan", icon: "box" },
-      { id: "themes", href: "/themes", label: "Tema", icon: "palette" },
-      { id: "tips", href: "/tips", label: "Tips & Trik", icon: "bulb" }
+      { id: "themes", href: "/themes", label: "Tema", icon: "palette" }
     ]
-  }
+  },
+  { id: "tips", href: "/tips", label: "Tips & Trik", icon: "bulb" }
 ];
 
 /* Halaman: setiap halaman = id, path, judul SEO, deskripsi, hero */
