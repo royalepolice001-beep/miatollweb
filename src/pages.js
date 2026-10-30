@@ -5,257 +5,167 @@ const dl = require("./data/downloads");
 const { tips, faq } = require("./data/tips");
 const { esc } = require("./layout");
 
-/* ================= Hero umum ================= */
-function hero(h, extraClass = "") {
+/* ========= meta kategori untuk row / search ========= */
+const CAT_META = {
+  rom: { label: "Official ROM", icon: "download", tone: "tone-blue", path: "/rom" },
+  "custom-rom": { label: "Custom ROM", icon: "layers", tone: "tone-indigo", path: "/custom-rom" },
+  firmware: { label: "Firmware", icon: "database", tone: "tone-teal", path: "/firmware" },
+  kernel: { label: "Custom Kernel", icon: "cpu", tone: "tone-orange", path: "/kernel" },
+  recovery: { label: "Recovery", icon: "shield", tone: "tone-green", path: "/recovery" },
+  "port-rom": { label: "Port ROM", icon: "shuffle", tone: "tone-purple", path: "/port-rom" },
+  modules: { label: "Magisk / KSU", icon: "package", tone: "tone-blue", path: "/modules" },
+  apk: { label: "APK", icon: "box", tone: "tone-teal", path: "/apk" },
+  themes: { label: "Tema", icon: "palette", tone: "tone-pink", path: "/themes" }
+};
+
+function allItems() {
+  const out = [];
+  for (const key of Object.keys(CAT_META)) {
+    const cfg = dl.groups[key];
+    if (!cfg) continue;
+    cfg.items.forEach((it) => out.push({ ...it, cat: key }));
+  }
+  return out;
+}
+
+/* ========= Page head (hero) ========= */
+function hero(h) {
   return `
-      <section class="hero glass ${extraClass}" data-reveal>
-        <span class="pill pill-hero">${icons.sparkles}<span>${esc(h.badge)}</span></span>
-        <h1 class="hero-title gradient-text">${esc(h.title)}</h1>
+      <section class="page-head" data-reveal>
+        <span class="pill pill-hero">${esc(h.badge)}</span>
+        <h1 class="hero-title">${esc(h.title)}</h1>
         <p class="hero-sub">${esc(h.subtitle)}</p>
-        <div class="hero-actions">
-          <a class="btn btn-gradient" href="/rom">Jelajahi Download ${icons.arrowRight}</a>
-          <a class="btn btn-glass" href="/tips">Baca Tips dulu</a>
-        </div>
       </section>`;
 }
 
-/* ================= Kategori cards ================= */
-const categories = [
-  { href: "/rom", icon: "download", title: "Official ROM", desc: "MIUI stok semua region, versi & format.", tone: "indigo" },
-  { href: "/custom-rom", icon: "layers", title: "Custom ROM", desc: "Android 10–17: AOSP, feature ROM, gaming.", tone: "violet" },
-  { href: "/firmware", icon: "database", title: "Firmware", desc: "Paket firmware restore & perbaikan.", tone: "cyan" },
-  { href: "/kernel", icon: "cpu", title: "Custom Kernel", desc: "Performa, battery, gaming, KSU-ready.", tone: "orange" },
-  { href: "/recovery", icon: "shield", title: "Custom Recovery", desc: "TWRP, OrangeFox, PitchBlack, SHRP.", tone: "green" },
-  { href: "/port-rom", icon: "shuffle", title: "Port ROM", desc: "xiaomi.eu, HyperOS-style, port eksperimental.", tone: "pink" },
-  { href: "/modules", icon: "package", title: "Magisk / KSU", desc: "Root, Zygisk, LSPosed, Play Integrity.", tone: "blue" },
-  { href: "/apk", icon: "box", title: "APK Pilihan", desc: "GCam, Shizuku, Termux, debloat tools.", tone: "teal" },
-  { href: "/themes", icon: "palette", title: "Tema", desc: "iOS style, HyperOS style, AOD & icon.", tone: "red" },
-  { href: "/tips", icon: "bulb", title: "Tips & Trik", desc: "Unlock BL, flashing, anti-bootloop.", tone: "amber" }
-];
-
-function catCards() {
-  return categories
-    .map(
-      (c, i) => `
-        <a class="cat-card glass" href="${c.href}" data-reveal style="--reveal-delay:${i * 40}ms">
-          <span class="cat-icon tone-${c.tone}">${icons[c.icon]}</span>
-          <span class="cat-body">
-            <strong>${esc(c.title)}</strong>
-            <small>${esc(c.desc)}</small>
-          </span>
-          <span class="cat-arrow" aria-hidden="true">${icons.arrowRight}</span>
-          <span class="shine" aria-hidden="true"></span>
-        </a>`
-    )
-    .join("");
-}
-
-/* ================= Device mini cards ================= */
-function deviceMiniCards() {
-  return devices
-    .map(
-      (d, i) => `
-        <a class="device-mini glass" href="/devices" data-reveal style="--reveal-delay:${i * 60}ms">
-          <span class="device-mini-code tone-${d.color}">${esc(d.codename)}</span>
-          <strong>${esc(d.name)}</strong>
-          <small>${esc(d.chip)} · ${esc(d.android.replace("Android ", "A"))}</small>
-        </a>`
-    )
-    .join("");
-}
-
-/* ================= Featured download cards ================= */
-function featuredItems(limit = 6) {
-  const all = [
-    ...dl.officialRom,
-    ...dl.customRom,
-    ...dl.kernel,
-    ...dl.recovery,
-    ...dl.portRom,
-    ...dl.modules,
-    ...dl.apk
-  ].filter((x) => x.featured);
-
-  const pick = all.slice(0, limit);
-  return pick
-    .map(
-      (it, i) => `
-        <article class="dl-card glass" data-reveal style="--reveal-delay:${i * 50}ms">
-          ${it.badge ? `<span class="badge badge-gradient">${esc(it.badge)}</span>` : ""}
-          <h3>${esc(it.title)}</h3>
-          <p class="dl-version"><code>${esc(it.version)}</code></p>
-          <div class="dl-meta">
-            <span class="pill">Android ${esc(it.android)}</span>
-            ${it.region && it.region !== "—" ? `<span class="pill">${esc(it.region)}</span>` : ""}
-            ${it.size && it.size !== "—" ? `<span class="pill">${esc(it.size)}</span>` : ""}
-          </div>
-        </article>`
-    )
-    .join("");
-}
-
-/* ================= HOME ================= */
+/* ========= HOME ========= */
 function homePage() {
   const p = pages.find((x) => x.id === "index");
-  const stats = [
-    { n: 5, suffix: "", label: "Device Miatoll", icon: "smartphone" },
-    { n: 10, suffix: "", label: "Kategori Download", icon: "download" },
-    { n: 80, suffix: "+", label: "Item Terkurasi", icon: "package" },
-    { n: 8, suffix: "", label: "Dukungan Android (10–17)", icon: "chip" }
-  ];
+
+  /* index pencarian global (dipakai JS home) */
+  const searchIndex = allItems().map((it) => ({
+    t: it.title,
+    c: CAT_META[it.cat].label,
+    p: CAT_META[it.cat].path,
+    v: it.version,
+    a: it.android
+  }));
+  const indexScript = `<script>window.MF_INDEX=${JSON.stringify(searchIndex).replace(/</g, "\\u003c")};</script>`;
+
+  /* update terbaru: sort by date desc */
+  const latest = allItems()
+    .filter((it) => it.date && it.date !== "—")
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 7);
+
+  const downloadRows = ["rom", "custom-rom", "firmware", "kernel", "recovery", "port-rom"];
+  const moddingRows = ["modules", "apk", "themes"];
+
+  const groupRows = (keys) =>
+    keys
+      .map((k) => {
+        const m = CAT_META[k];
+        const count = dl.groups[k].items.length;
+        return `
+        <a class="row" href="${m.path}">
+          <span class="row-ico ${m.tone}">${icons[m.icon]}</span>
+          <span class="row-body">
+            <span class="row-title">${esc(m.label)}</span>
+            <span class="row-sub">${count} item terkurasi</span>
+          </span>
+          <span class="row-chevron">${icons.chevronRight}</span>
+        </a>`;
+      })
+      .join("");
 
   const content = `
-      <section class="home-hero">
-        <div class="home-hero-copy" data-reveal>
-          <span class="pill pill-hero">${icons.sparkles}<span>Download Center Komunitas</span></span>
-          <h1 class="hero-title gradient-text animated-gradient">Miatoll Family</h1>
-          <p class="hero-sub home-sub">
-            Satu pusat download untuk seluruh keluarga <strong>Redmi Note 9 series &amp; POCO M2 Pro</strong> —
-            official ROM, custom ROM Android 10–17, firmware, kernel, recovery, module, APK, tema,
-            plus tips yang menyelamatkan kamu dari bootloop.
-          </p>
-          <div class="hero-actions">
-            <a class="btn btn-gradient btn-lg" href="/rom">Mulai Download ${icons.arrowRight}</a>
-            <a class="btn btn-glass btn-lg" href="/custom-rom">Lihat Custom ROM</a>
+      <section class="home-head" data-reveal>
+        <h1>Miatoll Family</h1>
+        <p>Download center Redmi Note 9 series &amp; POCO M2 Pro — official ROM, custom ROM, firmware, kernel, recovery, module, APK, dan tema.</p>
+
+        <div class="search-wrap" data-home-search>
+          <div class="search-field">
+            ${icons.search}
+            <input type="search" class="search-input" id="homeSearch" placeholder="Cari ROM, kernel, module…" aria-label="Cari di download center" autocomplete="off">
           </div>
-          <div class="device-strip" aria-label="Daftar codename device">
-            ${deviceMiniCards()}
-          </div>
+          <div class="search-results" id="homeSearchResults" hidden role="listbox"></div>
         </div>
 
-        <div class="home-hero-panel glass" data-reveal style="--reveal-delay:120ms" aria-hidden="true">
-          <div class="panel-head">
-            <span class="panel-dots"><i></i><i></i><i></i></span>
-            <span class="panel-title">miatoll-fetch · stable</span>
-          </div>
-          <div class="panel-rows">
-            <div class="panel-row" style="--row-i:0">
-              <span class="tone-indigo pr-ico">${icons.download}</span>
-              <span class="pr-main"><strong>MIUI 14 · curtana</strong><small>V14.0.6.0.TJPINXM · Recovery</small></span>
-              <span class="pr-tag">Ready</span>
-            </div>
-            <div class="panel-row" style="--row-i:1">
-              <span class="tone-violet pr-ico">${icons.layers}</span>
-              <span class="pr-main"><strong>LineageOS 21 · gram</strong><small>Android 14 · Nightly</small></span>
-              <span class="pr-tag">Ready</span>
-            </div>
-            <div class="panel-row" style="--row-i:2">
-              <span class="tone-cyan pr-ico">${icons.shield}</span>
-              <span class="pr-main"><strong>OrangeFox R12.1</strong><small>curtana / gram / mojito</small></span>
-              <span class="pr-tag">Ready</span>
-            </div>
-            <div class="panel-row" style="--row-i:3">
-              <span class="tone-orange pr-ico">${icons.cpu}</span>
-              <span class="pr-main"><strong>KernelSU-ready kernel</strong><small>Android 13 · Stable</small></span>
-              <span class="pr-tag">KSU</span>
-            </div>
-            <div class="panel-row" style="--row-i:4">
-              <span class="tone-pink pr-ico">${icons.package}</span>
-              <span class="pr-main"><strong>Play Integrity Fix</strong><small>Zygisk module · updated</small></span>
-              <span class="pr-tag">New</span>
-            </div>
-          </div>
-          <div class="panel-foot">
-            <span class="status-dot"></span> index updated · siap flash
-          </div>
-        </div>
-      </section>
-
-      <section class="stats" aria-label="Statistik">
-        ${stats
-          .map(
-            (s, i) => `
-          <div class="stat glass" data-reveal style="--reveal-delay:${i * 70}ms">
-            <span class="stat-ico">${icons[s.icon]}</span>
-            <strong class="stat-num" data-count="${s.n}">0</strong><span class="stat-suffix">${s.suffix}</span>
-            <small>${esc(s.label)}</small>
-          </div>`
-          )
-          .join("")}
-      </section>
-
-      <section class="section">
-        <header class="section-head" data-reveal>
-          <h2>Semua yang kamu butuhkan</h2>
-          <p>Dari ROM resmi sampai module root — 10 kategori terkurasi, filter-friendly.</p>
-        </header>
-        <div class="cat-grid">
-          ${catCards()}
-        </div>
-      </section>
-
-      <section class="section">
-        <header class="section-head" data-reveal>
-          <h2>Highlight minggu ini</h2>
-          <p>Update paling ramai dibuka di download center.</p>
-        </header>
-        <div class="dl-grid">
-          ${featuredItems(6)}
-        </div>
-      </section>
-
-      <section class="section">
-        <header class="section-head" data-reveal>
-          <h2>Kenapa Miatoll Family?</h2>
-          <p>Dibangun khusus untuk 5 device ini — bukan download center generik.</p>
-        </header>
-        <div class="feature-grid">
-          ${[
-            { icon: "smartphone", t: "Codename-aware", d: "Setiap item dikelompokkan per codename — curtana, gram, excalibur, mojito, joyeuse. Minim risiko salah flash." },
-            { icon: "globe", t: "Semua region", d: "Global, India, EEA, Indonesia, Russia, Turkey, Taiwan — lengkap dengan kode region agar tidak keliru." },
-            { icon: "zap", t: "Android 10 → 17", d: "Dari MIUI 12 launch build sampai custom ROM Android 17 (coming soon) — semua terindeks." },
-            { icon: "shield", t: "Anti-bootloop mindset", d: "Tips, warning, dan urutan flashing yang benar disertakan di setiap kategori." }
-          ]
+        <div class="device-chip-row" aria-label="Perangkat Miatoll">
+          ${devices
             .map(
-              (f, i) => `
-            <article class="feature glass" data-reveal style="--reveal-delay:${i * 70}ms">
-              <span class="cat-icon tone-indigo">${icons[f.icon]}</span>
-              <h3>${esc(f.t)}</h3>
-              <p>${esc(f.d)}</p>
-            </article>`
+              (d) => `
+          <a class="device-mini" href="/devices" title="${esc(d.name)}">
+            <span class="device-mini-code">${esc(d.codename)}</span>
+            <small>${esc(d.name)}</small>
+          </a>`
             )
             .join("")}
         </div>
       </section>
 
-      <section class="section">
-        <header class="section-head" data-reveal>
-          <h2>Pertanyaan umum</h2>
-          <p>Baru pertama kali modding? Mulai dari sini.</p>
-        </header>
-        <div class="faq-list glass" data-reveal>
-          ${faq
+      <section class="block" data-reveal>
+        <div class="block-head">
+          <h2 class="block-title">Update terbaru</h2>
+          <a class="block-more" href="/rom">Semua download ${icons.chevronRight}</a>
+        </div>
+        <div class="group">
+          ${latest
             .map(
-              (f, i) => `
-            <details class="faq-item"${i === 0 ? " open" : ""}>
-              <summary>${esc(f.q)}<span class="faq-ico" aria-hidden="true">${icons.arrowRight}</span></summary>
-              <div class="faq-body"><p>${f.a}</p></div>
-            </details>`
+              (it) => `
+          <a class="row" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">
+            <span class="row-ico ${CAT_META[it.cat].tone}">${icons[CAT_META[it.cat].icon]}</span>
+            <span class="row-body">
+              <span class="row-title">${esc(it.title)}</span>
+              <span class="row-sub"><code>${esc(it.version)}</code> · Android ${esc(it.android)}${
+                it.region && it.region !== "—" ? " · " + esc(it.region) : ""
+              }</span>
+            </span>
+            <span class="row-meta">${esc((it.date || "").slice(0, 7))}</span>
+            <span class="row-chevron">${icons.external}</span>
+          </a>`
             )
             .join("")}
         </div>
       </section>
 
-      <section class="cta glass" data-reveal>
-        <div class="cta-copy">
-          <h2>Siap flashing?</h2>
-          <p>Backup dulu, pilih ROM sesuai codename — sisanya kami bantu di Tips &amp; Trik.</p>
+      <section class="block" data-reveal>
+        <div class="block-head">
+          <h2 class="block-title">Download Center</h2>
         </div>
-        <div class="hero-actions">
-          <a class="btn btn-gradient btn-lg" href="/tips">Buka Tips &amp; Trik ${icons.arrowRight}</a>
-          <a class="btn btn-glass btn-lg" href="/devices">Kenali Device saya</a>
+        <div class="group">
+          ${groupRows(downloadRows)}
         </div>
-      </section>`;
+      </section>
+
+      <section class="block" data-reveal>
+        <div class="block-head">
+          <h2 class="block-title">Modding &amp; Extra</h2>
+        </div>
+        <div class="group">
+          ${groupRows(moddingRows)}
+          <a class="row" href="/tips">
+            <span class="row-ico tone-yellow">${icons.bulb}</span>
+            <span class="row-body">
+              <span class="row-title">Tips &amp; Trik</span>
+              <span class="row-sub">${tips.length} panduan — unlock BL, flashing, root, anti-bootloop</span>
+            </span>
+            <span class="row-chevron">${icons.chevronRight}</span>
+          </a>
+        </div>
+      </section>
+
+${indexScript}`;
 
   return { page: p, html: content };
 }
 
-/* ================= DOWNLOAD PAGE ================= */
+/* ========= DOWNLOAD PAGES ========= */
 function chipsFor(cfg) {
   return cfg.groups
     .map((g) => {
       const chips = [
-        `<button class="chip is-active" data-filter="${g.key}" data-value="" type="button">Semua ${esc(g.label)}</button>`,
+        `<button class="chip is-active" data-filter="${g.key}" data-value="" type="button">Semua</button>`,
         ...g.values.map(
           (v) => `<button class="chip" data-filter="${g.key}" data-value="${esc(v)}" type="button">${esc(v)}</button>`
         )
@@ -269,22 +179,21 @@ function chipsFor(cfg) {
 
 function itemCard(it, i) {
   return `
-        <article class="dl-card glass" data-reveal style="--reveal-delay:${Math.min(i, 8) * 45}ms"
+        <article class="dl-card" data-reveal style="--reveal-delay:${Math.min(i, 8) * 40}ms"
           data-android="${esc(it.android)}"
           data-region="${esc(it.region || "")}"
           data-type="${esc(it.type || "")}"
           data-search="${esc(
             [it.title, it.version, it.android, it.region, it.type, ...(it.tags || [])].join(" ").toLowerCase()
           )}">
-          ${it.badge ? `<span class="badge badge-gradient">${esc(it.badge)}</span>` : ""}
+          ${it.badge ? `<span class="badge">${esc(it.badge)}</span>` : ""}
           <h3>${esc(it.title)}</h3>
           <p class="dl-version"><code>${esc(it.version)}</code></p>
           <div class="dl-meta">
-            <span class="pill pill-android">Android ${esc(it.android)}</span>
+            <span class="pill">A${esc(it.android)}</span>
             ${it.region && it.region !== "—" ? `<span class="pill">${esc(it.region)}</span>` : ""}
             ${it.type && it.type !== "—" ? `<span class="pill">${esc(it.type)}</span>` : ""}
             ${it.size && it.size !== "—" ? `<span class="pill">${esc(it.size)}</span>` : ""}
-            ${it.date ? `<span class="pill pill-date">${esc(it.date)}</span>` : ""}
           </div>
           <div class="dl-foot">
             <div class="dl-tags">${(it.tags || []).map((t) => `<span class="tag">${esc(t)}</span>`).join("")}</div>
@@ -301,19 +210,19 @@ function downloadPage(id) {
   const content = `
 ${hero(p.hero)}
 
-      <section class="toolbar glass" data-reveal data-filter-root>
+      <section class="toolbar" data-reveal data-filter-root>
         <div class="toolbar-search">
           <span class="toolbar-search-ico" aria-hidden="true">${icons.search}</span>
           <input type="search" class="toolbar-input" data-filter-search placeholder="${esc(
             cfg.searchPlaceholder
-          )}" aria-label="Cari">
+          )}" aria-label="Cari item">
         </div>
         <div class="toolbar-filters">
           ${chipsFor(cfg)}
         </div>
         <div class="toolbar-status">
-          <span><strong data-filter-count>${cfg.items.length}</strong> item ditampilkan</span>
-          <button class="chip chip-reset" data-filter-reset type="button">Reset filter</button>
+          <span><strong data-filter-count>${cfg.items.length}</strong> item</span>
+          <button class="chip chip-reset" data-filter-reset type="button">Reset</button>
         </div>
       </section>
 
@@ -321,10 +230,10 @@ ${hero(p.hero)}
         <div class="dl-grid" data-filter-list>
           ${cfg.items.map(itemCard).join("")}
         </div>
-        <p class="empty-state glass" data-filter-empty hidden>Tidak ada item yang cocok dengan filter. Coba kata kunci lain atau reset filter.</p>
+        <p class="empty-state" data-filter-empty hidden>Tidak ada item yang cocok. Coba kata kunci lain atau reset filter.</p>
       </section>
 
-      <aside class="note glass" data-reveal>
+      <aside class="note" data-reveal>
         <span class="note-ico" aria-hidden="true">${icons.alert}</span>
         <div>
           <strong>Catatan flashing</strong>
@@ -335,7 +244,7 @@ ${hero(p.hero)}
   return { page: p, html: content };
 }
 
-/* ================= DEVICES PAGE ================= */
+/* ========= DEVICES ========= */
 function devicesPage() {
   const p = pages.find((x) => x.id === "devices");
   const content = `
@@ -346,13 +255,15 @@ ${hero(p.hero)}
           ${devices
             .map(
               (d, i) => `
-            <article class="device-card glass" data-reveal style="--reveal-delay:${i * 70}ms">
+            <article class="device-card" data-reveal style="--reveal-delay:${i * 60}ms">
               <header class="device-card-head">
-                <span class="device-code tone-${d.color}">${esc(d.codename)}</span>
-                ${d.popular ? `<span class="badge badge-gradient">Popular</span>` : ""}
+                <span class="device-code">${esc(d.codename)}</span>
+                ${d.popular ? `<span class="badge" style="position:static">Popular</span>` : ""}
               </header>
               <h2>${esc(d.name)}</h2>
-              <p class="device-chip"><span class="tone-${d.color}">${icons[d.chipIcon]}</span> ${esc(d.chip)}</p>
+              <p class="device-chip"><span class="${d.color === "indigo" ? "tone-indigo" : "tone-" + d.color}">${
+                icons[d.chipIcon]
+              }</span> ${esc(d.chip)}</p>
               <ul class="device-specs">
                 <li><span>Layar</span><strong>${esc(d.display)}</strong></li>
                 <li><span>Kamera</span><strong>${esc(d.camera)}</strong></li>
@@ -364,7 +275,11 @@ ${hero(p.hero)}
               <div class="device-markets">
                 ${d.market.map((m) => `<span class="pill">${esc(m)}</span>`).join("")}
               </div>
-              ${d.note ? `<p class="device-warning">${icons.alert}<span>${esc(d.note)}</span></p>` : ""}
+              ${
+                d.note
+                  ? `<p class="device-warning">${icons.alert}<span>${esc(d.note)}</span></p>`
+                  : ""
+              }
               <div class="device-actions">
                 <a class="btn btn-sm btn-gradient" href="/rom">Official ROM</a>
                 <a class="btn btn-sm btn-glass" href="/custom-rom">Custom ROM</a>
@@ -375,18 +290,18 @@ ${hero(p.hero)}
         </div>
       </section>
 
-      <aside class="note glass" data-reveal>
+      <aside class="note" data-reveal>
         <span class="note-ico" aria-hidden="true">${icons.alert}</span>
         <div>
           <strong>Kenapa codename penting?</strong>
-          <p>Device dengan nama pasar mirip bisa punya codename &amp; varian chip berbeda. Flash file dengan codename yang salah hampir pasti berujung bootloop. Cek codename: <code>Pengaturan → Tentang telepon</code>, atau via ADB: <code>adb shell getprop ro.product.device</code>.</p>
+          <p>Flash file dengan codename yang salah hampir pasti berujung bootloop. Cek codename: <code>Pengaturan → Tentang telepon</code>, atau via ADB: <code>adb shell getprop ro.product.device</code>.</p>
         </div>
       </aside>`;
 
   return { page: p, html: content };
 }
 
-/* ================= TIPS PAGE ================= */
+/* ========= TIPS ========= */
 function tipsPage() {
   const p = pages.find((x) => x.id === "tips");
   const content = `
@@ -397,12 +312,12 @@ ${hero(p.hero)}
           ${tips
             .map(
               (t, i) => `
-            <article class="tip glass" id="${esc(t.id)}" data-reveal style="--reveal-delay:${Math.min(i, 8) * 45}ms">
+            <article class="tip" id="${esc(t.id)}" data-reveal style="--reveal-delay:${Math.min(i, 8) * 40}ms">
               <header class="tip-head">
-                <span class="cat-icon tone-indigo">${icons[t.icon] || icons.bulb}</span>
+                <span class="row-ico tone-blue">${icons[t.icon] || icons.bulb}</span>
                 <div class="tip-meta">
                   <span class="pill">${esc(t.level)}</span>
-                  <span class="pill">${t.minutes} menit baca</span>
+                  <span class="pill">${t.minutes} menit</span>
                 </div>
               </header>
               <h2>${esc(t.title)}</h2>
@@ -410,11 +325,7 @@ ${hero(p.hero)}
               <ol class="tip-steps">
                 ${t.content.map((c) => `<li>${c}</li>`).join("")}
               </ol>
-              ${
-                t.warning
-                  ? `<div class="tip-warning">${icons.alert}<p>${esc(t.warning)}</p></div>`
-                  : ""
-              }
+              ${t.warning ? `<div class="tip-warning">${icons.alert}<p>${esc(t.warning)}</p></div>` : ""}
             </article>`
             )
             .join("")}
@@ -422,16 +333,13 @@ ${hero(p.hero)}
       </section>
 
       <section class="section">
-        <header class="section-head" data-reveal>
-          <h2>FAQ</h2>
-          <p>Jawaban singkat untuk pertanyaan yang paling sering masuk.</p>
-        </header>
-        <div class="faq-list glass" data-reveal>
+        <div class="block-head"><h2 class="block-title">FAQ</h2></div>
+        <div class="faq-list" data-reveal>
           ${faq
             .map(
               (f) => `
             <details class="faq-item">
-              <summary>${esc(f.q)}<span class="faq-ico" aria-hidden="true">${icons.arrowRight}</span></summary>
+              <summary>${esc(f.q)}<span class="faq-ico" aria-hidden="true">${icons.chevronRight}</span></summary>
               <div class="faq-body"><p>${f.a}</p></div>
             </details>`
             )
@@ -442,7 +350,7 @@ ${hero(p.hero)}
   return { page: p, html: content };
 }
 
-/* ================= 404 ================= */
+/* ========= 404 ========= */
 function notFoundPage() {
   const p = {
     id: "404",
@@ -452,12 +360,12 @@ function notFoundPage() {
     hero: null
   };
   const content = `
-      <section class="hero glass nf" data-reveal>
-        <span class="pill pill-hero">${icons.alert}<span>404</span></span>
-        <h1 class="hero-title gradient-text">Page not found</h1>
-        <p class="hero-sub">Halaman ini tidak ada — mungkin codename-nya salah 😄. Kembali ke beranda atau lanjut ke download center.</p>
-        <div class="hero-actions">
-          <a class="btn btn-gradient" href="/">Ke Beranda ${icons.arrowRight}</a>
+      <section class="page-head" data-reveal>
+        <span class="pill pill-hero">404</span>
+        <h1 class="hero-title">Halaman tidak ditemukan</h1>
+        <p class="hero-sub">Mungkin codename-nya salah 😄. Kembali ke beranda atau lanjut ke download center.</p>
+        <div class="hero-actions" style="display:flex;gap:10px;margin-top:6px">
+          <a class="btn btn-gradient" href="/">Ke Beranda</a>
           <a class="btn btn-glass" href="/rom">Download Center</a>
         </div>
       </section>`;

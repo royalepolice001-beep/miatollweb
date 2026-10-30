@@ -1,6 +1,6 @@
 /* =========================================================
-   Miatoll Family — main.js
-   Theme · Sidebar · Reveal · Counters · Filter · Utilities
+   Miatoll Family — main.js (v2)
+   Theme · Sidebar rail/flyout · Home search · Filter · Utilities
    ========================================================= */
 (function () {
   "use strict";
@@ -17,15 +17,6 @@
       try {
         localStorage.setItem("mf-theme", next);
       } catch (e) {}
-      themeBtn.animate(
-        [
-          { transform: "scale(1)" },
-          { transform: "scale(0.82) rotate(-12deg)" },
-          { transform: "scale(1.06) rotate(6deg)" },
-          { transform: "scale(1)" }
-        ],
-        { duration: 420, easing: "cubic-bezier(0.34, 1.4, 0.44, 1)" }
-      );
     });
   }
 
@@ -34,7 +25,7 @@
   var menuBtn = doc.getElementById("menuBtn");
   var backdrop = doc.getElementById("backdrop");
 
-  function setSidebar(open) {
+  function setMobileSidebar(open) {
     if (!sidebar) return;
     sidebar.classList.toggle("is-open", open);
     if (backdrop) backdrop.hidden = !open;
@@ -44,33 +35,21 @@
 
   if (menuBtn) {
     menuBtn.addEventListener("click", function () {
-      setSidebar(!sidebar.classList.contains("is-open"));
+      setMobileSidebar(!sidebar.classList.contains("is-open"));
     });
   }
   if (backdrop) {
     backdrop.addEventListener("click", function () {
-      setSidebar(false);
-    });
-  }
-  doc.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") setSidebar(false);
-  });
-  if (sidebar) {
-    sidebar.addEventListener("click", function (e) {
-      var a = e.target.closest("a");
-      if (a && window.matchMedia("(max-width: 960px)").matches) setSidebar(false);
+      setMobileSidebar(false);
     });
   }
 
-  /* ---------- Desktop sidebar state: rail / open / hidden ---------- */
+  /* ---------- Desktop sidebar state: rail / hidden ---------- */
   var SB_KEY = "mf-sidebar";
-  var sbToggle = doc.getElementById("sbToggle");
-  var sbCollapse = doc.getElementById("sbCollapse");
 
   function getSidebarState() {
     try {
-      var s = localStorage.getItem(SB_KEY);
-      return s === "open" || s === "hidden" ? s : "rail";
+      return localStorage.getItem(SB_KEY) === "hidden" ? "hidden" : "rail";
     } catch (e) {
       return "rail";
     }
@@ -81,59 +60,57 @@
     try {
       localStorage.setItem(SB_KEY, state);
     } catch (e) {}
-    if (sbToggle) {
-      var label =
-        state === "hidden"
-          ? "Tampilkan sidebar"
-          : state === "open"
-          ? "Lepas kunci sidebar (rail)"
-          : "Kunci sidebar terbuka";
-      sbToggle.setAttribute("aria-label", label);
-      sbToggle.setAttribute("title", label);
-    }
   }
 
   setSidebarState(getSidebarState());
 
-  if (sbToggle) {
-    sbToggle.addEventListener("click", function () {
-      var cur = root.getAttribute("data-sidebar") || "rail";
-      var next =
-        cur === "rail" ? "open" : cur === "open" ? "rail" : "rail";
-      setSidebarState(next);
-    });
-  }
-
+  var sbCollapse = doc.getElementById("sbCollapse");
   if (sbCollapse) {
     sbCollapse.addEventListener("click", function () {
       setSidebarState("hidden");
     });
   }
 
+  /* ---------- Flyout shortcut menu ---------- */
+  var sbMenuBtn = doc.getElementById("sbMenuBtn");
+  var sbFlyout = doc.getElementById("sbFlyout");
+
+  function setFlyout(open) {
+    if (!sbFlyout) return;
+    sbFlyout.hidden = !open;
+    if (sbMenuBtn) {
+      sbMenuBtn.setAttribute("aria-expanded", open ? "true" : "false");
+      sbMenuBtn.classList.toggle("is-on", open);
+    }
+  }
+
+  if (sbMenuBtn) {
+    sbMenuBtn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      setFlyout(sbFlyout.hidden);
+    });
+  }
+  doc.addEventListener("click", function (e) {
+    if (!sbFlyout || sbFlyout.hidden) return;
+    if (sbFlyout.contains(e.target) || (sbMenuBtn && sbMenuBtn.contains(e.target))) return;
+    setFlyout(false);
+  });
+
   doc.addEventListener("keydown", function (e) {
     if (e.key !== "Escape") return;
-    if (!window.matchMedia("(min-width: 961px)").matches) return;
-    var cur = root.getAttribute("data-sidebar");
-    if (cur && cur !== "rail") setSidebarState("rail");
+    setFlyout(false);
+    setMobileSidebar(false);
+    if (window.matchMedia("(min-width: 961px)").matches) setSidebarState("rail");
   });
 
-  /* ---------- Sidebar hover glow follows cursor ---------- */
-  doc.querySelectorAll(".nav-item").forEach(function (item) {
-    item.addEventListener("pointermove", function (e) {
-      var r = item.getBoundingClientRect();
-      item.style.setProperty("--mx", e.clientX - r.left + "px");
-      item.style.setProperty("--my", e.clientY - r.top + "px");
-    });
-  });
-
-  /* ---------- Topbar scroll state + back-to-top ---------- */
+  /* ---------- Topbar scroll + back-to-top ---------- */
   var topbar = doc.getElementById("topbar");
   var toTop = doc.getElementById("toTop");
 
   function onScroll() {
     var y = window.scrollY || 0;
-    if (topbar) topbar.classList.toggle("is-scrolled", y > 12);
-    if (toTop) toTop.classList.toggle("is-visible", y > 520);
+    if (topbar) topbar.classList.toggle("is-scrolled", y > 8);
+    if (toTop) toTop.classList.toggle("is-visible", y > 480);
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
@@ -156,7 +133,7 @@
           }
         });
       },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.06 }
+      { rootMargin: "0px 0px -6% 0px", threshold: 0.05 }
     );
     revealEls.forEach(function (el) {
       io.observe(el);
@@ -167,39 +144,84 @@
     });
   }
 
-  /* ---------- Animated counters ---------- */
-  var counters = doc.querySelectorAll("[data-count]");
-  function animateCounter(el) {
-    var target = parseInt(el.getAttribute("data-count"), 10) || 0;
-    var dur = 1300;
-    var start = performance.now();
-    function frame(now) {
-      var t = Math.min(1, (now - start) / dur);
-      var eased = 1 - Math.pow(1 - t, 3);
-      el.textContent = Math.round(target * eased);
-      if (t < 1) requestAnimationFrame(frame);
-      else el.textContent = target;
+  /* ---------- Home search ---------- */
+  var homeSearch = doc.getElementById("homeSearch");
+  var searchResults = doc.getElementById("homeSearchResults");
+  var MF_INDEX = window.MF_INDEX || [];
+  var srActive = -1;
+
+  function renderResults(q) {
+    if (!searchResults) return;
+    q = (q || "").trim().toLowerCase();
+    if (!q) {
+      searchResults.hidden = true;
+      searchResults.innerHTML = "";
+      srActive = -1;
+      return;
     }
-    requestAnimationFrame(frame);
+    var hits = MF_INDEX.filter(function (it) {
+      return (it.t + " " + it.c + " " + it.v + " " + it.a).toLowerCase().indexOf(q) !== -1;
+    }).slice(0, 7);
+
+    if (!hits.length) {
+      searchResults.innerHTML = '<p class="sr-empty">Tidak ada hasil untuk "' + q.replace(/</g, "&lt;") + '"</p>';
+      searchResults.hidden = false;
+      srActive = -1;
+      return;
+    }
+
+    searchResults.innerHTML = hits
+      .map(function (it, i) {
+        return (
+          '<a class="sr-item' +
+          (i === srActive ? " is-active" : "") +
+          '" href="' +
+          it.p +
+          '" role="option">' +
+          '<span class="sr-cat">' +
+          it.c +
+          "</span>" +
+          '<span class="sr-title">' +
+          it.t.replace(/</g, "&lt;") +
+          "</span>" +
+          '<span class="sr-ver">A' +
+          it.a +
+          "</span>" +
+          "</a>"
+        );
+      })
+      .join("");
+    searchResults.hidden = false;
   }
-  if ("IntersectionObserver" in window && counters.length) {
-    var cio = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          if (entry.isIntersecting) {
-            animateCounter(entry.target);
-            cio.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.4 }
-    );
-    counters.forEach(function (el) {
-      cio.observe(el);
+
+  if (homeSearch) {
+    homeSearch.addEventListener("input", function () {
+      srActive = -1;
+      renderResults(homeSearch.value);
     });
-  } else {
-    counters.forEach(function (el) {
-      el.textContent = el.getAttribute("data-count");
+    homeSearch.addEventListener("keydown", function (e) {
+      var items = searchResults ? searchResults.querySelectorAll(".sr-item") : [];
+      if (e.key === "ArrowDown" && items.length) {
+        e.preventDefault();
+        srActive = Math.min(srActive + 1, items.length - 1);
+        renderResults(homeSearch.value);
+      } else if (e.key === "ArrowUp" && items.length) {
+        e.preventDefault();
+        srActive = Math.max(srActive - 1, 0);
+        renderResults(homeSearch.value);
+      } else if (e.key === "Enter") {
+        if (srActive >= 0 && items[srActive]) {
+          window.location.href = items[srActive].getAttribute("href");
+        } else if (homeSearch.value.trim()) {
+          window.location.href = "/rom?q=" + encodeURIComponent(homeSearch.value.trim());
+        }
+      } else if (e.key === "Escape") {
+        renderResults("");
+        homeSearch.blur();
+      }
+    });
+    doc.addEventListener("click", function (e) {
+      if (searchResults && !e.target.closest("[data-home-search]")) renderResults("");
     });
   }
 
@@ -212,22 +234,19 @@
     var countEl = filterRoot.querySelector("[data-filter-count]");
     var emptyEl = doc.querySelector("[data-filter-empty]");
     var resetBtn = filterRoot.querySelector("[data-filter-reset]");
-    var active = {}; // group -> value ("" = all)
+    var active = {};
 
     function applyFilter() {
       var q = (searchInput && searchInput.value ? searchInput.value : "").trim().toLowerCase();
       var shown = 0;
       cards.forEach(function (card) {
         var ok = true;
-        // chip groups (AND between groups, OR-less: single value per group)
         Object.keys(active).forEach(function (group) {
           var val = active[group];
           if (!val) return;
           var attr = card.getAttribute("data-" + group) || "";
-          var values = attr.split(/\s+/);
-          if (values.indexOf(val) === -1) ok = false;
+          if (attr.split(/\s+/).indexOf(val) === -1) ok = false;
         });
-        // search
         if (ok && q) {
           var hay = card.getAttribute("data-search") || card.textContent.toLowerCase();
           if (hay.indexOf(q) === -1) ok = false;
@@ -241,17 +260,13 @@
 
     filterRoot.addEventListener("click", function (e) {
       var chip = e.target.closest(".chip[data-filter]");
-      if (chip) {
-        var group = chip.getAttribute("data-filter");
-        var value = chip.getAttribute("data-value") || "";
-        active[group] = value;
-        filterRoot
-          .querySelectorAll('.chip[data-filter="' + group + '"]')
-          .forEach(function (c) {
-            c.classList.toggle("is-active", c === chip);
-          });
-        applyFilter();
-      }
+      if (!chip) return;
+      var group = chip.getAttribute("data-filter");
+      active[group] = chip.getAttribute("data-value") || "";
+      filterRoot.querySelectorAll('.chip[data-filter="' + group + '"]').forEach(function (c) {
+        c.classList.toggle("is-active", c === chip);
+      });
+      applyFilter();
     });
 
     if (resetBtn) {
@@ -269,23 +284,31 @@
       var timer;
       searchInput.addEventListener("input", function () {
         clearTimeout(timer);
-        timer = setTimeout(applyFilter, 120);
+        timer = setTimeout(applyFilter, 100);
       });
+      /* prefill dari ?q= (hasil search homepage) */
+      try {
+        var qParam = new URLSearchParams(window.location.search).get("q");
+        if (qParam) {
+          searchInput.value = qParam;
+          applyFilter();
+        }
+      } catch (e) {}
     }
   }
 
-  /* ---------- FAQ: only one open per list (optional polish) ---------- */
+  /* ---------- FAQ: satu terbuka per list ---------- */
   doc.querySelectorAll(".faq-list").forEach(function (listEl) {
-    listEl.addEventListener("toggle", function (e) {
-      var target = e.target;
-      if (target.tagName !== "DETAILS" || !target.open) return;
-      listEl.querySelectorAll("details.faq-item").forEach(function (d) {
-        if (d !== target) d.open = false;
-      });
-    }, true);
+    listEl.addEventListener(
+      "toggle",
+      function (e) {
+        var target = e.target;
+        if (target.tagName !== "DETAILS" || !target.open) return;
+        listEl.querySelectorAll("details.faq-item").forEach(function (d) {
+          if (d !== target) d.open = false;
+        });
+      },
+      true
+    );
   });
-
-  /* ---------- Footer year safety ---------- */
-  var yr = doc.querySelector("[data-year]");
-  if (yr) yr.textContent = new Date().getFullYear();
 })();

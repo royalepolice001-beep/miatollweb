@@ -36,7 +36,9 @@ const icons = {
   lock: I('<rect x="5.5" y="10.5" width="13" height="9.5" rx="2.2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>'),
   rocket: I('<path d="M12.8 15.2c3.6-2.3 5.7-5.9 6-10.2-4.3.3-7.9 2.4-10.2 6l-4.1 1a1.6 1.6 0 0 0-.8 2.7l3.4 3.4a1.6 1.6 0 0 0 2.7-.8l1-4.1Z"/><circle cx="14.6" cy="8.6" r="1.6"/><path d="M6.5 17.5c-1.5 1.5-2 4-2 4s2.5-.5 4-2"/>'),
   chevronsLeft: I('<path d="m11.5 6.5-5.5 5.5 5.5 5.5"/><path d="m18.5 6.5-5.5 5.5 5.5 5.5"/>'),
-  chevronsRight: I('<path d="m12.5 6.5 5.5 5.5-5.5 5.5"/><path d="m5.5 6.5 5.5 5.5-5.5 5.5"/>')
+  chevronsRight: I('<path d="m12.5 6.5 5.5 5.5-5.5 5.5"/><path d="m5.5 6.5 5.5 5.5-5.5 5.5"/>'),
+  grid: I('<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.8"/>'),
+  chevronRight: I('<path d="m9.5 6 6 6-6 6"/>')
 };
 
 module.exports = icons;
