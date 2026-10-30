@@ -101,6 +101,10 @@ function main() {
   buildSitemap();
   buildRobots();
 
+  // Root 404.html (standard untuk Vercel & Cloudflare Pages)
+  const nf404 = path.join(DIST, "404", "index.html");
+  if (fs.existsSync(nf404)) fs.copyFileSync(nf404, path.join(DIST, "404.html"));
+
   // Basic sanity check
   const index = path.join(DIST, "index.html");
   if (!fs.existsSync(index) || fs.statSync(index).size < 1000) {

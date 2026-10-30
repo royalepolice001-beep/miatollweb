@@ -1,5 +1,8 @@
 # Miatoll Family 📱✨
 
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/royalepolice001-beep/miatollweb)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/royalepolice001-beep/miatollweb)
+
 **Download Center lengkap untuk keluarga Xiaomi Miatoll** — Redmi Note 9, Note 9 Pro, Note 9 Pro Max, Note 9S & POCO M2 Pro (`curtana` · `gram` · `excalibur` · `mojito` · `joyeuse`).
 
 Tema: **clean glassmorphism ala iOS** · **dark & light mode** · **sidebar gaming** · **full animasi** · **responsive** · **SEO-ready** · deploy **gratis** ke Vercel / Cloudflare Pages lewat GitHub.
@@ -65,14 +68,25 @@ Repo ini sudah dikonfigurasi untuk keduanya. **Satu langkah wajib**: ganti `SITE
 
 > Alternatif CLI: `npm i -g vercel` lalu `vercel --prod` di root repo.
 
-### B. Cloudflare Pages (juga gratis)
+### B. Cloudflare (gratis) — 3 cara
 
+**B1. Tombol "Deploy to Cloudflare" (paling cepat)**
+1. Merge PR / pastikan kode sudah ada di `main`, lalu klik tombol **[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/royalepolice001-beep/miatollweb)** di atas halaman ini.
+2. Login Cloudflare → authorize GitHub → konfigurasi build sudah otomatis terbaca dari `wrangler.jsonc` (`npm run build` → `dist`).
+3. Selesai — langsung dapat URL live `*.workers.dev`. Update `SITE_URL`, push, deploy ulang otomatis.
+
+**B2. Cloudflare Pages via Git (rekomendasi untuk update otomatis)**
 1. Buka [dash.cloudflare.com](https://dash.cloudflare.com) → **Workers & Pages → Create → Pages → Connect to Git**.
 2. Pilih repo ini, lalu isi:
    - **Build command:** `npm run build`
    - **Build output directory:** `dist`
-3. Deploy → dapat domain `*.pages.dev` gratis.
-4. Update `SITE_URL`, commit — deploy ulang otomatis.
+3. Deploy → dapat domain `*.pages.dev` gratis. Setiap push = auto redeploy.
+
+**B3. Upload manual (tanpa Git)**
+```bash
+npm run build
+# lalu drag folder dist/ ke https://dash.cloudflare.com → Workers & Pages → Create → Pages → Upload assets
+```
 
 ### C. Lihat lokal
 
