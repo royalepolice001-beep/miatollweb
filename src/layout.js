@@ -9,37 +9,68 @@ function esc(s) {
     .replace(/"/g, "&quot;");
 }
 
-/* ---------- Nav item ---------- */
-function navItem(item, activeId, idx) {
-  const active = item.id === activeId;
-  return `
-        <a class="nav-item${active ? " is-active" : ""}" href="${item.href}" data-label="${esc(item.label)}" style="--d:${
-    (idx || 0) * 16
-  }ms"${active ? ' aria-current="page"' : ""}>
-          <span class="nav-icon">${icons[item.icon] || ""}</span>
-          <span class="nav-label s-hide-rail">${esc(item.label)}</span>
-        </a>`;
-}
+/* ---------- Navbar (animated top bar) ---------- */
+function navbar(activeId) {
+  const direct = nav.filter((g) => !g.section);
+  const drops = nav.filter((g) => g.section);
 
-function navGroups(activeId) {
-  return nav
-    .map((group, gi) => {
-      if (group.section) {
-        return `
-        <div class="nav-section">
-          <p class="nav-section-title s-hide-rail" style="--d:${gi * 24}ms">${esc(group.section)}</p>
-          ${group.items.map((it, ii) => navItem(it, activeId, ii + 2)).join("\n")}
-        </div>`;
+  const link = (item, extra = "") => {
+    const active = item.id === activeId;
+    return `<a class="nav-link${active ? " is-active" : ""}${extra}" href="${item.href}"${
+      active ? ' aria-current="page"' : ""
+    }>${esc(item.label)}</a>`;
+  };
+
+  const dropItems = (group) =>
+    group.items
+      .map((it) => {
+        const active = it.id === activeId;
+        return `<a class="drop-item${active ? " is-active" : ""}" href="${it.href}"${
+          active ? ' aria-current="page"' : ""
+        }>
+            <span class="drop-ico">${icons[it.icon] || ""}</span>
+            <span class="drop-body"><strong>${esc(it.label)}</strong></span>
+            <span class="drop-chevron">${icons.chevronRight}</span>
+          </a>`;
+      })
+      .join("");
+
+  const dropBlocks = drops
+    .map((group) => {
+      const isOn = group.items.some((it) => it.id === activeId);
+      return `<div class="nav-drop" data-drop>
+            <button class="nav-link nav-drop-btn${isOn ? " is-active" : ""}" type="button" aria-expanded="false">${esc(
+        group.section
+      )}<span class="nav-drop-caret">${icons.chevronRight}</span></button>
+            <div class="drop-panel" role="menu">
+              ${dropItems(group)}
+            </div>
+          </div>`;
+    })
+    .join("");
+
+  const mobileAll = nav
+    .map((g) => {
+      if (g.section) {
+        return `<p class="mobile-section">${esc(g.section)}</p>
+            ${g.items
+              .map(
+                (it) =>
+                  `<a class="mobile-link${it.id === activeId ? " is-active" : ""}" href="${it.href}" style="--d:${30}ms"><span class="drop-ico">${icons[it.icon]}</span>${esc(
+                    it.label
+                  )}</a>`
+              )
+              .join("")}`;
       }
-      return navItem(group, activeId, 0);
+      return `<a class="mobile-link${g.id === activeId ? " is-active" : ""}" href="${g.href}" style="--d:${30}ms"><span class="drop-ico">${icons[g.icon]}</span>${esc(
+        g.label
+      )}</a>`;
     })
     .join("\n");
-}
 
-/* ---------- Sidebar ---------- */
-function sidebar(activeId) {
-  const html = `
-    <div class="sidebar-inner">
+  return `
+  <header class="navbar" id="navbar">
+    <div class="nav-inner">
       <a class="brand" href="/" aria-label="Miatoll Family — Beranda">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 40 40" fill="none">
@@ -53,43 +84,34 @@ function sidebar(activeId) {
             <path d="M11 27V13.5l6.2 8.4 2.8-3.9 2.8 3.9L29 13.5V27" stroke="url(#bg1)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
         </span>
-        <span class="brand-text s-hide-rail">
-          <strong>Miatoll</strong>
-          <small>Family</small>
-        </span>
+        <span class="brand-text"><strong>Miatoll</strong><small>Family</small></span>
       </a>
 
-      <nav class="nav" aria-label="Menu utama">
-${navGroups(activeId)}
+      <nav class="nav-links" aria-label="Menu utama">
+        ${link(direct[0])}
+        ${link(direct[1])}
+        ${dropBlocks}
+        ${link(direct[2])}
       </nav>
 
-      <div class="sidebar-foot">
-        <div class="status-chip" title="Stable channel">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span class="s-hide-rail" style="--d:160ms">Stable · v${esc(site.version)}</span>
-        </div>
-        <a class="side-cta" href="https://github.com/royalepolice001-beep/miatollweb" target="_blank" rel="noopener noreferrer" title="Repo GitHub">
-          ${icons.package}
-          <span class="s-hide-rail" style="--d:180ms">Repo GitHub</span>
-        </a>
-        <button class="side-cta sb-collapse" id="sbCollapse" type="button" title="Sembunyikan sidebar" aria-label="Sembunyikan sidebar">
-          ${icons.chevronsLeft}
-          <span class="s-hide-rail" style="--d:200ms">Sembunyikan</span>
+      <div class="nav-actions">
+        <button class="icon-btn theme-btn" id="themeBtn" aria-label="Ganti mode gelap/terang" title="Mode gelap / terang">
+          <span class="theme-ico theme-ico-sun">${icons.sun}</span>
+          <span class="theme-ico theme-ico-moon">${icons.moon}</span>
+        </button>
+        <a class="btn btn-sm btn-gradient hide-mobile" href="/rom">Download</a>
+        <button class="icon-btn menu-btn" id="menuBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="mobileMenu">
+          <span class="burger"><i></i><i></i><i></i></span>
         </button>
       </div>
-    </div>`;
-  return `<aside class="sidebar" id="sidebar" aria-label="Sidebar navigasi">${html}</aside>`;
-}
+    </div>
 
-/* ---------- Flyout shortcut menu ---------- */
-function flyout(activeId) {
-  return `
-    <div class="sb-flyout" id="sbFlyout" hidden role="menu" aria-label="Menu cepat">
-      <p class="sb-flyout-title">Menu cepat</p>
-      <nav class="nav" aria-label="Shortcut menu">
-${navGroups(activeId)}
+    <div class="mobile-menu" id="mobileMenu" hidden>
+      <nav aria-label="Menu mobile">
+${mobileAll}
       </nav>
-    </div>`;
+    </div>
+  </header>`;
 }
 
 /* ---------- Footer ---------- */
@@ -219,45 +241,12 @@ function head(page) {
           t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
         }
         document.documentElement.setAttribute("data-theme", t);
-        var s = localStorage.getItem("mf-sidebar");
-        if (s !== "hidden") s = "rail";
-        document.documentElement.setAttribute("data-sidebar", s);
       } catch (e) {
         document.documentElement.setAttribute("data-theme", "light");
-        document.documentElement.setAttribute("data-sidebar", "rail");
       }
     })();
   </script>
   <script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>`;
-}
-
-/* ---------- Topbar ---------- */
-function topbar(page) {
-  const crumb =
-    page.path === "/"
-      ? "Beranda"
-      : (page.hero && page.hero.title) || page.title.split("—")[0].trim();
-  return `
-    <header class="topbar" id="topbar">
-      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
-        ${icons.menu}
-      </button>
-      <button class="icon-btn sb-menu-btn" id="sbMenuBtn" type="button" aria-label="Buka menu cepat" aria-expanded="false" aria-controls="sbFlyout" title="Menu cepat">
-        ${icons.grid}
-      </button>
-      <div class="crumb">
-        <span class="crumb-root">Miatoll</span>
-        <span class="crumb-sep" aria-hidden="true">/</span>
-        <span class="crumb-current">${esc(crumb)}</span>
-      </div>
-      <div class="topbar-actions">
-        <button class="icon-btn theme-btn" id="themeBtn" aria-label="Ganti mode gelap/terang" title="Mode gelap / terang">
-          <span class="theme-ico theme-ico-sun">${icons.sun}</span>
-          <span class="theme-ico theme-ico-moon">${icons.moon}</span>
-        </button>
-        <a class="btn btn-sm btn-gradient hide-mobile" href="/rom">Download</a>
-      </div>
-    </header>`;
 }
 
 /* ---------- Page shell ---------- */
@@ -268,13 +257,9 @@ function layout(page, content) {
 ${head(page)}
 </head>
 <body data-page="${page.id}">
-${sidebar(page.id)}
-${flyout(page.id)}
-
-  <div class="backdrop" id="backdrop" hidden></div>
+${navbar(page.id)}
 
   <div class="shell">
-${topbar(page)}
     <main class="main">
 ${content}
 ${footer()}

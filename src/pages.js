@@ -52,55 +52,97 @@ function homePage() {
   }));
   const indexScript = `<script>window.MF_INDEX=${JSON.stringify(searchIndex).replace(/</g, "\\u003c")};</script>`;
 
-  /* update terbaru: sort by date desc */
+  /* slide hero: item TERBARU dari setiap menu */
+  const slides = Object.keys(CAT_META)
+    .map((k) => {
+      const items = dl.groups[k].items
+        .filter((it) => it.date && it.date !== "—")
+        .sort((a, b) => (a.date < b.date ? 1 : -1));
+      return items[0] ? { ...items[0], cat: k } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  /* grid update terbaru: 8 item terbaru lintas kategori */
   const latest = allItems()
     .filter((it) => it.date && it.date !== "—")
     .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 7);
+    .slice(0, 8);
 
-  const downloadRows = ["rom", "custom-rom", "firmware", "kernel", "recovery", "port-rom"];
-  const moddingRows = ["modules", "apk", "themes"];
-
-  const groupRows = (keys) =>
-    keys
-      .map((k) => {
-        const m = CAT_META[k];
-        const count = dl.groups[k].items.length;
-        return `
-        <a class="row" href="${m.path}">
+  const tiles = Object.keys(CAT_META).map((k) => {
+    const m = CAT_META[k];
+    return `
+        <a class="tile" href="${m.path}">
           <span class="row-ico ${m.tone}">${icons[m.icon]}</span>
-          <span class="row-body">
-            <span class="row-title">${esc(m.label)}</span>
-            <span class="row-sub">${count} item terkurasi</span>
-          </span>
-          <span class="row-chevron">${icons.chevronRight}</span>
+          <strong>${esc(m.label)}</strong>
+          <small>${dl.groups[k].items.length} item</small>
         </a>`;
-      })
-      .join("");
+  });
 
   const content = `
-      <section class="home-head" data-reveal>
-        <h1>Miatoll Family</h1>
-        <p>Download center Redmi Note 9 series &amp; POCO M2 Pro — official ROM, custom ROM, firmware, kernel, recovery, module, APK, dan tema.</p>
+      <section class="hero">
+        <div class="hero-copy" data-reveal>
+          <span class="pill pill-hero">Download Center Komunitas</span>
+          <h1>Miatoll Family</h1>
+          <p>Semua kebutuhan modding keluarga Miatoll — Redmi Note 9 series &amp; POCO M2 Pro. ROM, firmware, kernel, recovery, module, APK, dan tema dalam satu tempat.</p>
 
-        <div class="search-wrap" data-home-search>
-          <div class="search-field">
-            ${icons.search}
-            <input type="search" class="search-input" id="homeSearch" placeholder="Cari ROM, kernel, module…" aria-label="Cari di download center" autocomplete="off">
+          <div class="search-wrap" data-home-search>
+            <div class="search-field">
+              ${icons.search}
+              <input type="search" class="search-input" id="homeSearch" placeholder="Cari ROM, kernel, module…" aria-label="Cari di download center" autocomplete="off">
+            </div>
+            <div class="search-results" id="homeSearchResults" hidden role="listbox"></div>
           </div>
-          <div class="search-results" id="homeSearchResults" hidden role="listbox"></div>
+
+          <div class="device-chip-row" aria-label="Perangkat Miatoll">
+            ${devices
+              .map(
+                (d) => `
+            <a class="device-mini" href="/devices" title="${esc(d.name)}">
+              <span class="device-mini-code">${esc(d.codename)}</span>
+              <small>${esc(d.name)}</small>
+            </a>`
+              )
+              .join("")}
+          </div>
         </div>
 
-        <div class="device-chip-row" aria-label="Perangkat Miatoll">
-          ${devices
-            .map(
-              (d) => `
-          <a class="device-mini" href="/devices" title="${esc(d.name)}">
-            <span class="device-mini-code">${esc(d.codename)}</span>
-            <small>${esc(d.name)}</small>
-          </a>`
-            )
-            .join("")}
+        <div class="hero-stage" data-slideshow aria-label="Update terbaru dari tiap menu">
+          <div class="stage-head">
+            <span class="stage-title"><i class="stage-live" aria-hidden="true"></i> Terbaru dari tiap menu</span>
+            <a class="block-more" href="/rom">Lihat semua</a>
+          </div>
+          <div class="slides">
+            ${slides
+              .map(
+                (it, i) => `
+            <article class="slide${i === 0 ? " is-active" : ""}" role="group" aria-roledescription="slide" aria-label="${i + 1} dari ${slides.length}">
+              <span class="slide-cat ${CAT_META[it.cat].tone}">${esc(CAT_META[it.cat].label)}</span>
+              <h2>${esc(it.title)}</h2>
+              <p class="slide-meta">
+                <code>${esc(it.version)}</code>
+                <span>· Android ${esc(it.android)}</span>
+                ${it.region && it.region !== "—" ? `<span>· ${esc(it.region)}</span>` : ""}
+                ${it.type && it.type !== "—" ? `<span>· ${esc(it.type)}</span>` : ""}
+              </p>
+              <div class="slide-actions">
+                <a class="btn btn-sm btn-gradient" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">Lihat &amp; Unduh ${icons.external}</a>
+                <span class="pill">${esc((it.date || "").slice(0, 7))}</span>
+              </div>
+            </article>`
+              )
+              .join("")}
+          </div>
+          <div class="stage-dots" role="tablist" aria-label="Pilih slide">
+            ${slides
+              .map(
+                (_, i) =>
+                  `<button type="button" role="tab" aria-selected="${i === 0 ? "true" : "false"}" class="${
+                    i === 0 ? "is-active" : ""
+                  }" aria-label="Slide ${i + 1}"></button>`
+              )
+              .join("")}
+          </div>
         </div>
       </section>
 
@@ -109,21 +151,23 @@ function homePage() {
           <h2 class="block-title">Update terbaru</h2>
           <a class="block-more" href="/rom">Semua download ${icons.chevronRight}</a>
         </div>
-        <div class="group">
+        <div class="latest-grid">
           ${latest
             .map(
               (it) => `
-          <a class="row" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">
-            <span class="row-ico ${CAT_META[it.cat].tone}">${icons[CAT_META[it.cat].icon]}</span>
-            <span class="row-body">
-              <span class="row-title">${esc(it.title)}</span>
-              <span class="row-sub"><code>${esc(it.version)}</code> · Android ${esc(it.android)}${
-                it.region && it.region !== "—" ? " · " + esc(it.region) : ""
-              }</span>
-            </span>
-            <span class="row-meta">${esc((it.date || "").slice(0, 7))}</span>
-            <span class="row-chevron">${icons.external}</span>
-          </a>`
+          <article class="dl-card">
+            <h3>${esc(it.title)}</h3>
+            <p class="dl-version"><code>${esc(it.version)}</code></p>
+            <div class="dl-meta">
+              <span class="pill">A${esc(it.android)}</span>
+              ${it.region && it.region !== "—" ? `<span class="pill">${esc(it.region)}</span>` : ""}
+              <span class="pill">${esc(CAT_META[it.cat].label)}</span>
+            </div>
+            <div class="dl-foot">
+              <div class="dl-tags"><span class="tag">${esc((it.date || "").slice(0, 7))}</span></div>
+              <a class="btn btn-sm btn-glass" href="${esc(it.url)}" target="_blank" rel="noopener noreferrer">Unduh ${icons.external}</a>
+            </div>
+          </article>`
             )
             .join("")}
         </div>
@@ -131,26 +175,14 @@ function homePage() {
 
       <section class="block" data-reveal>
         <div class="block-head">
-          <h2 class="block-title">Download Center</h2>
+          <h2 class="block-title">Jelajahi per kategori</h2>
         </div>
-        <div class="group">
-          ${groupRows(downloadRows)}
-        </div>
-      </section>
-
-      <section class="block" data-reveal>
-        <div class="block-head">
-          <h2 class="block-title">Modding &amp; Extra</h2>
-        </div>
-        <div class="group">
-          ${groupRows(moddingRows)}
-          <a class="row" href="/tips">
+        <div class="tile-grid">
+          ${tiles.join("")}
+          <a class="tile" href="/tips">
             <span class="row-ico tone-yellow">${icons.bulb}</span>
-            <span class="row-body">
-              <span class="row-title">Tips &amp; Trik</span>
-              <span class="row-sub">${tips.length} panduan — unlock BL, flashing, root, anti-bootloop</span>
-            </span>
-            <span class="row-chevron">${icons.chevronRight}</span>
+            <strong>Tips &amp; Trik</strong>
+            <small>${tips.length} panduan</small>
           </a>
         </div>
       </section>
